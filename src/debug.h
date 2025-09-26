@@ -36,3 +36,19 @@ extern SemaphoreHandle_t serialMutex;
 */
 
 #endif // DEBUG_H
+
+/*
+#ifndef LIB_DEBUG_H
+#define LIB_DEBUG_H
+
+#include "Arduino.h"
+
+// A simpler logger for the library
+#ifdef ENABLE_FRAMEWORK_LOGGING
+  #define LOG_FRAMEWORK(format, ...) Serial.printf(format "\n", ##__VA_ARGS__)
+#else
+  #define LOG_FRAMEWORK(format, ...)
+#endif
+
+#endif // LIB_DEBUG_H
+*/
