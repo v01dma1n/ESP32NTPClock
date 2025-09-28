@@ -1,6 +1,5 @@
 #include "clock_fsm_manager.h"
 #include "sntp_client.h"
-// #include "blc_access_point.h" // Note: This dependency will be removed in a later refactor
 #include "anim_scrolling_text.h"
 #include <WiFi.h>
 
@@ -84,13 +83,14 @@ void ClockFsmManager::on_enter_startup_anim() {
 
 void ClockFsmManager::on_enter_wifi_connect() {
     WiFi.setHostname(_clock.getAppName());
-    WiFi.begin(_clock.getPrefs().config.ssid, _clock.getPrefs().config.password);
+    WiFi.begin(_clock.getSsid(), _clock.getPassword());
     auto connectingMsg = std::make_unique<ScrollingTextAnimation>("CONNECTING WIFI...");
     _clock.getClock().setAnimation(std::move(connectingMsg));
 }
 
 void ClockFsmManager::on_enter_ntp_sync() {
-    setupSntp(_clock.getPrefs().config.time_zone);
+    // Use the new interface method
+    setupSntp(_clock.getTimezone());
     auto syncingMsg = std::make_unique<ScrollingTextAnimation>("SYNCING TIME...");
     _clock.getClock().setAnimation(std::move(syncingMsg));
 }

@@ -2,17 +2,31 @@
 #define I_GENERIC_CLOCK_H
 
 #include "display_manager.h"
-#include "blc_preferences.h" // We need AppPreferences for now
+#include "openweather_client.h" 
 #include "RTClib.h"
 
-// This is an abstract base class (an "interface") that defines
-// the essential functions a clock must have for the FSM to control it.
+class AppPreferences; // Keep the forward declaration for now if other parts need it
+
 class IGenericClock {
 public:
     virtual ~IGenericClock() {}
 
-    // Functions the FSM needs to access
-    virtual AppPreferences& getPrefs() = 0;
+    virtual const char* getSsid() const = 0;
+    virtual const char* getPassword() const = 0;
+    virtual const char* getTimezone() const = 0;
+
+    virtual bool isOkToRunScenes() const = 0;
+
+    virtual const char* getTempUnit() const = 0;
+    virtual const char* getOwmApiKey() const = 0;
+    virtual const char* getOwmCity() const = 0;
+    virtual const char* getOwmStateCode() const = 0;
+    virtual const char* getOwmCountryCode() const = 0;
+    virtual void setWeatherData(const OpenWeatherData& data) = 0;
+
+    virtual void formatTime(char *txt, unsigned txt_size, const char *format, time_t now) = 0;
+    
+    virtual IDisplayDriver& getDisplay() = 0;
     virtual DisplayManager& getClock() = 0;
     virtual RTC_DS1307& getRtc() = 0;
     virtual bool isRtcActive() const = 0;

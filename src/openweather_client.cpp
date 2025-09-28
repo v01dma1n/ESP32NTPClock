@@ -1,6 +1,6 @@
 #include "openweather_client.h"
 
-#include "debug.h"
+#include "enc_debug.h"
 
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -27,7 +27,7 @@ OpenWeatherData getOpenWeatherData(const OWMConfig& config) {
     url += "&units=";
     url += config.temp_unit;
 
-    LOGMSG(APP_LOG_DEBUG, "Fetching weather from: %s", url.c_str());
+    ENC_LOG("Fetching weather from: %s", url.c_str());
     if (http.begin(client, url)) {
         http.setTimeout(15000); // 15-second timeout
         int httpCode = http.GET();
@@ -47,17 +47,17 @@ OpenWeatherData getOpenWeatherData(const OWMConfig& config) {
                 data.humidity = humidityStr.toFloat();
 
                 data.isValid = true;
-                LOGDBG("Weather Parsed: %.1f, %.0f%% Humidity", data.temperatureF, data.humidity);
+                ENC_LOG("Weather Parsed: %.1f, %.0f%% Humidity", data.temperatureF, data.humidity);
             } else {
-                LOGMSG(APP_LOG_ERROR, "Failed to parse weather JSON: %s", payload.c_str());
+                ENC_LOG("Failed to parse weather JSON: %s", payload.c_str());
             }
         } else {
             // The new error log also includes the payload, which is more helpful for debugging.
-            LOGMSG(APP_LOG_ERROR, "HTTP GET request failed, code: %d, response: %s", httpCode, payload.c_str());
+            ENC_LOG("HTTP GET request failed, code: %d, response: %s", httpCode, payload.c_str());
         }
         http.end();
     } else {
-        LOGMSG(APP_LOG_ERROR, "Failed to begin HTTP client.");
+        ENC_LOG("Failed to begin HTTP client.");
     }
 
     return data;

@@ -4,7 +4,7 @@ DisplayManager::DisplayManager(IDisplayDriver& display) : _display(display) {}
 
 void DisplayManager::begin() {
     _display.begin();
-    _display.setBrightness(1);
+    _display.setBrightness(8);
 }
 
 void DisplayManager::setAnimation(std::unique_ptr<IAnimation> animation) {

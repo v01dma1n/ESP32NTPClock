@@ -3,6 +3,7 @@
 
 #include "i_animation.h"
 #include <string>
+#include <vector>
 
 class ScrollingTextAnimation : public IAnimation {
 public:

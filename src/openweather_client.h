@@ -3,6 +3,9 @@
 
 #include <Arduino.h>
 
+#define OWM_UNIT_IMPERIAL "imperial"
+#define OWM_UNIT_METRIC "metric"
+
 struct OWMConfig {
     String city;
     String state_code;

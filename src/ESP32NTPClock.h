@@ -17,6 +17,6 @@
 #include "sntp_client.h"
 #include "wifi_connector.h"
 
-#include "debug.h"
+#include "enc_debug.h"
 
 #endif // ESP32_NTP_CLOCK_H

@@ -1,0 +1,197 @@
+#include "base_access_point_manager.h"
+#include "blc_preferences.h"
+#include "enc_debug.h"
+#include "tz_data.h"
+#include <WiFi.h>
+#include <DNSServer.h> 
+
+static BaseAccessPointManager* _baseApInstance = nullptr;
+
+void onWifiEvent(WiFiEvent_t event) {
+    if (!_baseApInstance) return;
+    // The friend declaration in the header allows this global function
+    // to call a protected method on the instance.
+    if (event == ARDUINO_EVENT_WIFI_AP_STACONNECTED) {
+        _baseApInstance->setClientConnected(true);
+    } else if (event == ARDUINO_EVENT_WIFI_AP_STADISCONNECTED) {
+        _baseApInstance->setClientConnected(false);
+    }
+}
+
+BaseAccessPointManager::BaseAccessPointManager(AppPreferences& prefs)
+    : _prefs(prefs), _server(80) {
+    _baseApInstance = this;
+}
+
+// The destructor is defaulted in the header, so the empty body is removed from here.
+
+void BaseAccessPointManager::setup(const char* hostName) {
+    initializeFormFields();
+    setupServer();
+
+    ENC_LOG("Setting up AP Mode");
+    WiFi.onEvent(onWifiEvent); // Register the event handler
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(hostName);
+
+    ENC_LOG("AP IP address: %s", WiFi.softAPIP().toString().c_str());
+    _dnsServer.start(DNS_DEFAULT_PORT, "*", WiFi.softAPIP());
+    _server.begin();
+    ENC_LOG("Base AP Setup Complete.");
+}
+
+void BaseAccessPointManager::loop() {
+    _dnsServer.processNextRequest();
+}
+
+void BaseAccessPointManager::setupServer() {
+    _server.on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        request->send(200, "text/html", assembleHtml());
+    });
+
+    _server.on("/get", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        ENC_LOG("Received new settings via AP.");
+        bool restart = false;
+
+        for (FormField &field : _formFields) {
+            if (field.prefType == PREF_BOOL) {
+                bool isChecked = request->hasParam(field.name);
+                *(field.pref.bool_pref) = isChecked;
+                restart = true;
+            } else {
+                if (request->hasParam(field.name)) {
+                    String val = request->getParam(field.name)->value();
+                    if (field.isMasked && (val.isEmpty() || val == PASSWORD_MASKED)) {
+                        continue;
+                    }
+                    if (field.prefType == PREF_STRING || field.prefType == PREF_SELECT) {
+                        strncpy(field.pref.str_pref, val.c_str(), MAX_PREF_STRING_LEN - 1);
+                        field.pref.str_pref[MAX_PREF_STRING_LEN - 1] = '\0';
+                    } else if (field.prefType == PREF_ENUM) {
+                        *(field.pref.enum_pref) = static_cast<AppLogLevel>(val.toInt());
+                    }
+                    restart = true;
+                }
+            }
+        }
+
+        if (restart) {
+            ENC_LOG("Settings saved. Restarting device.");
+            _prefs.putPreferences();
+            delay(200);
+            ESP.restart();
+        }
+        request->send(200, "text/html", "Settings saved. The device will now restart.");
+    });
+}
+
+// This is the base implementation that only adds the generic fields.
+// The subclass will call this and then add its own specific fields.
+void BaseAccessPointManager::initializeFormFields() {
+    _formFields.clear(); // Ensure the vector is empty before starting
+
+    FormField wifiSsidField;
+    wifiSsidField.id = "WiFiSSIDInput";
+    wifiSsidField.name = "WiFi SSID";
+    wifiSsidField.isMasked = false;
+    wifiSsidField.prefType = PREF_STRING;
+    wifiSsidField.pref.str_pref = _prefs.config.ssid;
+    _formFields.push_back(wifiSsidField);
+
+    FormField passwordField;
+    passwordField.id = "PasswordInput";
+    passwordField.name = "Password";
+    passwordField.isMasked = true;
+    passwordField.prefType = PREF_STRING;
+    passwordField.pref.str_pref = _prefs.config.password;
+    _formFields.push_back(passwordField);
+
+    FormField timeZoneField;
+    timeZoneField.id = "TimeZoneInput";
+    timeZoneField.name = "Time Zone";
+    timeZoneField.isMasked = false;
+    timeZoneField.prefType = PREF_SELECT;
+    timeZoneField.pref.str_pref = _prefs.config.time_zone;
+    timeZoneField.select_options = timezones;
+    timeZoneField.num_select_options = num_timezones;
+    _formFields.push_back(timeZoneField);
+
+    FormField logLevelField;
+    logLevelField.id = "logLevel";
+    logLevelField.name = "Log Level";
+    logLevelField.isMasked = false;
+    logLevelField.prefType = PREF_ENUM;
+    logLevelField.pref.enum_pref = &_prefs.config.logLevel;
+    _formFields.push_back(logLevelField);
+}
+
+// --- HTML Generation (These methods remain generic) ---
+
+String BaseAccessPointManager::generateForm() {
+  String form = "<form action=\"/get\"><table>";
+  for (const auto& field : _formFields) {
+    form += "<tr>";
+    form += "<td>" + String(field.name) + ":</td>";
+    if (field.prefType == PREF_STRING) {
+        String inputTag = "<input type=\"";
+        inputTag += (field.isMasked ? "password" : "text");
+        inputTag += "\" name=\"" + String(field.name) + "\" id=\"" + String(field.id) + "\"";
+        if (field.isMasked && strlen(field.pref.str_pref) > 0) {
+            inputTag += " value=\"" + String(PASSWORD_MASKED) + "\"";
+        }
+        inputTag += ">";
+        form += "<td>" + inputTag + "</td>";
+    } else if (field.prefType == PREF_BOOL) {
+      form += "<td><input type=\"checkbox\" name=\"" + String(field.name) + 
+              "\" id=\"" + String(field.id) + "\" " +
+              (*(field.pref.bool_pref) ? "checked" : "") + "></td>";
+    } else if (field.prefType == PREF_ENUM) {
+      form += "<td><select name=\"" + String(field.name) + "\" id=\"" + String(field.id) + "\">";
+      form += "<option value=\"" + String(APP_LOG_ERROR) + "\">Error</option>";
+      form += "<option value=\"" + String(APP_LOG_INFO) + "\">Info</option>";
+      form += "<option value=\"" + String(APP_LOG_DEBUG) + "\">Debug</option>";
+      form += "</select></td>";
+    } else if (field.prefType == PREF_SELECT) {
+        form += "<td><select name=\"" + String(field.name) + "\" id=\"" + String(field.id) + "\">";
+        for (int j = 0; j < field.num_select_options; ++j) {
+            form += "<option value=\"" + String(field.select_options[j].value) + "\"";
+            if (strcmp(field.pref.str_pref, field.select_options[j].value) == 0) {
+                form += " selected";
+            }
+            form += ">" + String(field.select_options[j].name) + "</option>";
+        }
+        form += "</select></td>";
+    }
+    form += "</tr>";
+  }
+  form += "<tr><td colspan=\"2\"><input type=\"submit\"></td></tr>";
+  form += "</table></form>";
+  return form;
+}
+
+String BaseAccessPointManager::generateJavascript() {
+    String script = "<script>window.onload = function() {";
+    for (size_t i = 0; i < _formFields.size(); ++i) {
+        const FormField &field = _formFields[i];
+        if (field.isMasked) continue;
+        script += "const e" + String(i) + " = document.getElementById(\"" + String(field.id) + "\");";
+        if (field.prefType == PREF_STRING) {
+            script += "e" + String(i) + ".value = \"" + String(field.pref.str_pref) + "\";";
+        } else if (field.prefType == PREF_BOOL) {
+            script += "e" + String(i) + ".checked = " + String(*(field.pref.bool_pref) ? "true" : "false") + ";";
+        } else if (field.prefType == PREF_ENUM) {
+            script += "e" + String(i) + ".value = \"" + String(*(field.pref.enum_pref)) + "\";";
+        }
+    }
+    script += "};</script>";
+    return script;
+}
+
+String BaseAccessPointManager::assembleHtml() {
+    String html = "<!DOCTYPE html><html><head><title>Clock Settings</title>";
+    html += generateJavascript();
+    html += "</head><body><h1>Clock Settings</h1>";
+    html += generateForm();
+    html += "</body></html>";
+    return html;
+}

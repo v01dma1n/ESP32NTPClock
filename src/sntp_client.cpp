@@ -1,5 +1,5 @@
 #include "sntp_client.h"
-#include "debug.h"
+#include "enc_debug.h"
 
 #include <esp_sntp.h>
 #include <Arduino.h>
@@ -31,7 +31,7 @@ int loopSntpGetTime(unsigned intervalMillis) {
 
 // Callback function (get's called when time adjusts via NTP)
 void timeAvailable(struct timeval *t) {
-  LOGINF("NTP time received.");
+  ENC_LOG("NTP time received.");
   timeAvail = true;
 }
 
@@ -55,7 +55,7 @@ void setupSntp(const char* tz) {
    * a year, in such a case time adjustment won't be handled automagicaly.
    */
   // configTime(gmtOffset_sec, daylightOffset_sec, ntpServer1, ntpServer2);
-  configTzTime(time_zone, ntpServer1, ntpServer2);
+  configTzTime(tz, ntpServer1, ntpServer2);
 
   /**
    * A more convenient approach to handle TimeZones with daylightOffset
