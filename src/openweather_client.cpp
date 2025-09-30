@@ -4,21 +4,24 @@
 
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include <WiFiClient.h>
+#include <WiFiClientSecure.h>
 #include <Arduino.h>
 
 OpenWeatherData getOpenWeatherData(const OWMConfig& config) {
     OpenWeatherData data;
     static HTTPClient http;
-    static WiFiClient client;
+    static WiFiClientSecure client;
 
+    // This tells the client to connect via HTTPS but skip verification.
+    client.setInsecure();
+    
     String city = config.city;
     city.replace(" ", "%20"); // the spaces in the cities mess up the URL
     String state = config.state_code;
     String country = config.country_code;
 
     // Build the API request URL from the config file
-    String url = "http://api.openweathermap.org/data/2.5/weather?q=";
+    String url = "https://api.openweathermap.org/data/2.5/weather?q=";
     url += city; 
     if (state.length() > 0) { url += "," + state; }
     if (country.length() > 0) { url += "," + country; }
