@@ -12,6 +12,7 @@
 #include "clock_fsm_manager.h"
 #include "display_manager.h"
 #include "disp_driver_ht16k33.h"
+#include "boot_manager.h"
 
 #include "openweather_client.h"
 #include "sntp_client.h"
