@@ -2,8 +2,12 @@
 #include "blc_preferences.h"
 #include "enc_debug.h"
 #include "tz_data.h"
+#include "display_manager.h"      
+#include "anim_scrolling_text.h"  
+
 #include <WiFi.h>
 #include <DNSServer.h> 
+#include <memory>                 
 
 static BaseAccessPointManager* _baseApInstance = nullptr;
 
@@ -42,6 +46,30 @@ void BaseAccessPointManager::setup(const char* hostName) {
 
 void BaseAccessPointManager::loop() {
     _dnsServer.processNextRequest();
+}
+
+void BaseAccessPointManager::runBlockingLoop(DisplayManager& display, const char* waitingMsg, const char* connectedMsg) {
+    enum ApDisplayState { WAITING_FOR_CLIENT, CLIENT_CONNECTED };
+    ApDisplayState apState = WAITING_FOR_CLIENT;
+
+    auto waitingAnimation = std::make_unique<ScrollingTextAnimation>(waitingMsg);
+    display.setAnimation(std::move(waitingAnimation));
+
+    while (true) {
+        if (apState == WAITING_FOR_CLIENT && isClientConnected()) {
+            apState = CLIENT_CONNECTED;
+            auto connectedAnimation = std::make_unique<ScrollingTextAnimation>(connectedMsg);
+            display.setAnimation(std::move(connectedAnimation));
+        } else if (apState == CLIENT_CONNECTED && !isClientConnected()) {
+            apState = WAITING_FOR_CLIENT;
+            auto waitingAnimationRetry = std::make_unique<ScrollingTextAnimation>(waitingMsg);
+            display.setAnimation(std::move(waitingAnimationRetry));
+        }
+
+        display.update();
+        loop(); // Process DNS requests
+        delay(10);
+    }
 }
 
 void BaseAccessPointManager::setupServer() {
@@ -125,7 +153,40 @@ void BaseAccessPointManager::initializeFormFields() {
     _formFields.push_back(logLevelField);
 }
 
-// --- HTML Generation (These methods remain generic) ---
+const char index_html[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bubble LED Display Settings</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Old+Standard+TT&display=swap"> 
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond&display=swap">
+    %JAVASCRIPT_PLACEHOLDER%
+    <style>
+        body {
+            background-image: url('https://plus.unsplash.com/premium_photo-1667761637876-e704c906927d'); 
+            background-color: #f0e68c;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+        }
+        h1:first-child {
+            font-family: "Cormorant Garamond", "Old Standard TT", "Times New Roman", serif;
+            text-align: center;
+            font-weight: bold;
+        }
+        td:first-child, input[type="submit"] {
+            text-align: right;
+            font-family: "Cormorant Garamond", "Old Standard TT", "Times New Roman", serif;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bubble LED Clock Settings</h1>
+    %FORM_PLACEHOLDER%
+</body>
+</html>)rawliteral";
+
 
 String BaseAccessPointManager::generateForm() {
   String form = "<form action=\"/get\"><table>";
@@ -188,10 +249,17 @@ String BaseAccessPointManager::generateJavascript() {
 }
 
 String BaseAccessPointManager::assembleHtml() {
-    String html = "<!DOCTYPE html><html><head><title>Clock Settings</title>";
-    html += generateJavascript();
-    html += "</head><body><h1>Clock Settings</h1>";
-    html += generateForm();
-    html += "</body></html>";
+    String html = String(index_html);
+
+    // Replace Javascript Placeholder
+    String generatedJavascript = generateJavascript();
+    html.replace("%JAVASCRIPT_PLACEHOLDER%", generatedJavascript);
+
+    // Generate and replace Form Placeholder
+    String formHtml = generateForm();
+    html.replace("%FORM_PLACEHOLDER%", formHtml);
+
     return html;
 }
+
+

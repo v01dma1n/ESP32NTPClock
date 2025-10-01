@@ -12,6 +12,7 @@
 #define PASSWORD_MASKED "********" 
 
 class AppPreferences;
+class DisplayManager;
 
 class BaseAccessPointManager {
 public:
@@ -20,11 +21,13 @@ public:
 
     virtual void setup(const char* hostName);
     void loop();
-    bool isClientConnected() const { return _isClientConnected; } // <-- ADD THIS
+    bool isClientConnected() const { return _isClientConnected; } 
+     void runBlockingLoop(DisplayManager& display, const char* waitingMsg, const char* connectedMsg);
+
 
 protected:
     friend void onWifiEvent(WiFiEvent_t event); // Allow callback to access private members
-    void setClientConnected(bool connected) { _isClientConnected = connected; } // <-- ADD THIS
+    void setClientConnected(bool connected) { _isClientConnected = connected; } 
 
     AppPreferences& _prefs;
     std::vector<FormField> _formFields;
@@ -33,7 +36,7 @@ protected:
 private:
     DNSServer _dnsServer;
     AsyncWebServer _server;
-    bool _isClientConnected = false; // <-- ADD THIS
+    bool _isClientConnected = false;
 
     String generateForm();
     String generateJavascript();
