@@ -1,5 +1,5 @@
 #include "base_access_point_manager.h"
-#include "blc_preferences.h"
+#include "base_preferences.h"
 #include "enc_debug.h"
 #include "tz_data.h"
 #include "log_level_data.h"
@@ -23,7 +23,7 @@ void onWifiEvent(WiFiEvent_t event) {
     }
 }
 
-BaseAccessPointManager::BaseAccessPointManager(AppPreferences& prefs)
+BaseAccessPointManager::BaseAccessPointManager(BasePreferences& prefs)
     : _prefs(prefs), _server(80) {
     _baseApInstance = this;
 }
@@ -124,7 +124,7 @@ void BaseAccessPointManager::initializeFormFields() {
     wifiSsidField.name = "WiFi SSID";
     wifiSsidField.isMasked = false;
     wifiSsidField.prefType = PREF_STRING;
-    wifiSsidField.pref.str_pref = _prefs.config.ssid;
+    wifiSsidField.pref.str_pref = _prefs.getConfig().ssid;
     _formFields.push_back(wifiSsidField);
 
     FormField passwordField;
@@ -132,7 +132,7 @@ void BaseAccessPointManager::initializeFormFields() {
     passwordField.name = "Password";
     passwordField.isMasked = true;
     passwordField.prefType = PREF_STRING;
-    passwordField.pref.str_pref = _prefs.config.password;
+    passwordField.pref.str_pref = _prefs.getConfig().password;
     _formFields.push_back(passwordField);
 
     FormField timeZoneField;
@@ -140,7 +140,7 @@ void BaseAccessPointManager::initializeFormFields() {
     timeZoneField.name = "Time Zone";
     timeZoneField.isMasked = false;
     timeZoneField.prefType = PREF_SELECT;
-    timeZoneField.pref.str_pref = _prefs.config.time_zone;
+    timeZoneField.pref.str_pref = _prefs.getConfig().time_zone;
     timeZoneField.select_options = timezones;
     timeZoneField.num_select_options = num_timezones;
     _formFields.push_back(timeZoneField);
@@ -150,7 +150,7 @@ void BaseAccessPointManager::initializeFormFields() {
     logLevelField.name = "Log Level";
     logLevelField.isMasked = false;
     logLevelField.prefType = PREF_ENUM;
-    logLevelField.pref.int_pref = reinterpret_cast<int32_t*>(&_prefs.config.logLevel);
+    logLevelField.pref.int_pref = reinterpret_cast<int32_t*>(&_prefs.getConfig().logLevel);
     _formFields.push_back(logLevelField);
 }
 

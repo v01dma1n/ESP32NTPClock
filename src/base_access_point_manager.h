@@ -11,12 +11,12 @@
 
 #define PASSWORD_MASKED "********" 
 
-class AppPreferences;
 class DisplayManager;
+class BasePreferences;
 
 class BaseAccessPointManager {
 public:
-    BaseAccessPointManager(AppPreferences& prefs);
+    BaseAccessPointManager(BasePreferences& prefs);
     virtual ~BaseAccessPointManager() = default;
 
     virtual void setup(const char* hostName);
@@ -29,7 +29,7 @@ protected:
     friend void onWifiEvent(WiFiEvent_t event); // Allow callback to access private members
     void setClientConnected(bool connected) { _isClientConnected = connected; } 
 
-    AppPreferences& _prefs;
+    BasePreferences& _prefs;
     std::vector<FormField> _formFields;
     virtual void initializeFormFields();
 
