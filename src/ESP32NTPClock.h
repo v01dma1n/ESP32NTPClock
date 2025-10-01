@@ -13,6 +13,8 @@
 #include "display_manager.h"
 #include "disp_driver_ht16k33.h"
 #include "boot_manager.h"
+#include "tz_data.h"
+#include "log_level_data.h"
 
 #include "openweather_client.h"
 #include "sntp_client.h"
