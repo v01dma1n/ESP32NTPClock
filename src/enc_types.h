@@ -53,7 +53,6 @@ typedef struct {
     char *str_pref;
     bool *bool_pref;
     int32_t *int_pref;
-    AppLogLevel *enum_pref;
   } pref;
   const PrefSelectOption* select_options;
   int num_select_options;

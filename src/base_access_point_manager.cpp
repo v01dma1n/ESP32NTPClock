@@ -2,6 +2,7 @@
 #include "blc_preferences.h"
 #include "enc_debug.h"
 #include "tz_data.h"
+#include "log_level_data.h"
 #include "display_manager.h"      
 #include "anim_scrolling_text.h"  
 
@@ -96,7 +97,7 @@ void BaseAccessPointManager::setupServer() {
                         strncpy(field.pref.str_pref, val.c_str(), MAX_PREF_STRING_LEN - 1);
                         field.pref.str_pref[MAX_PREF_STRING_LEN - 1] = '\0';
                     } else if (field.prefType == PREF_ENUM) {
-                        *(field.pref.enum_pref) = static_cast<AppLogLevel>(val.toInt());
+                        *(field.pref.int_pref) = val.toInt();
                     }
                     restart = true;
                 }
@@ -149,7 +150,7 @@ void BaseAccessPointManager::initializeFormFields() {
     logLevelField.name = "Log Level";
     logLevelField.isMasked = false;
     logLevelField.prefType = PREF_ENUM;
-    logLevelField.pref.enum_pref = &_prefs.config.logLevel;
+    logLevelField.pref.int_pref = reinterpret_cast<int32_t*>(&_prefs.config.logLevel);
     _formFields.push_back(logLevelField);
 }
 
@@ -208,9 +209,14 @@ String BaseAccessPointManager::generateForm() {
               (*(field.pref.bool_pref) ? "checked" : "") + "></td>";
     } else if (field.prefType == PREF_ENUM) {
       form += "<td><select name=\"" + String(field.name) + "\" id=\"" + String(field.id) + "\">";
-      form += "<option value=\"" + String(APP_LOG_ERROR) + "\">Error</option>";
-      form += "<option value=\"" + String(APP_LOG_INFO) + "\">Info</option>";
-      form += "<option value=\"" + String(APP_LOG_DEBUG) + "\">Debug</option>";
+      String savedValue = String(*(field.pref.int_pref));
+      for (int j = 0; j < numLogLevels; ++j) {
+          form += "<option value=\"" + String(logLevels[j].value) + "\"";
+          if (savedValue == logLevels[j].value) {
+              form += " selected";
+          }
+          form += ">" + String(logLevels[j].name) + "</option>";
+      }
       form += "</select></td>";
     } else if (field.prefType == PREF_SELECT) {
         form += "<td><select name=\"" + String(field.name) + "\" id=\"" + String(field.id) + "\">";
@@ -225,7 +231,7 @@ String BaseAccessPointManager::generateForm() {
     }
     form += "</tr>";
   }
-  form += "<tr><td colspan=\"2\"><input type=\"submit\"></td></tr>";
+  form += "<tr><td colspan=\"2\"><input type=\"submit\" value=\"Save and Restart\"></td></tr>";
   form += "</table></form>";
   return form;
 }
@@ -241,7 +247,7 @@ String BaseAccessPointManager::generateJavascript() {
         } else if (field.prefType == PREF_BOOL) {
             script += "e" + String(i) + ".checked = " + String(*(field.pref.bool_pref) ? "true" : "false") + ";";
         } else if (field.prefType == PREF_ENUM) {
-            script += "e" + String(i) + ".value = \"" + String(*(field.pref.enum_pref)) + "\";";
+            script += "e" + String(i) + ".value = \"" + String(*(field.pref.int_pref)) + "\";";
         }
     }
     script += "};</script>";
