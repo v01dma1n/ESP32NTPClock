@@ -5,13 +5,14 @@
 #include "i_display_driver.h"
 #include "i_generic_clock.h"
 
+#include "i2c_util.h"
+
 #include "anim_matrix.h"
 #include "anim_scrolling_text.h"
 #include "anim_slot_machine.h"
 
 #include "clock_fsm_manager.h"
 #include "display_manager.h"
-#include "disp_driver_ht16k33.h"
 #include "boot_manager.h"
 #include "tz_data.h"
 #include "log_level_data.h"
@@ -21,5 +22,7 @@
 #include "wifi_connector.h"
 
 #include "enc_debug.h"
+
+#include <ESP32NTPClock_HT16K33.h>
 
 #endif // ESP32_NTP_CLOCK_H

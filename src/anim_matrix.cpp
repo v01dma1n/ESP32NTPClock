@@ -95,7 +95,7 @@ void MatrixAnimation::update() {
             _display->setChar(i, _parsedTargetText[i], _dotState[i]);
         } else {
             // This character is not yet revealed, show rain animation
-            uint8_t fallingMask = 0;
+            uint16_t fallingMask = 0;
             _rainPos[i][0] += 0.1f;
             if (_rainPos[i][0] >= 2.0f) _rainPos[i][0] -= 2.0f;
             if ((int)_rainPos[i][0] == 0) fallingMask |= SEG_F; else fallingMask |= SEG_E;

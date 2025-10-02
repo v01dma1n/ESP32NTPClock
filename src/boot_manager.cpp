@@ -21,8 +21,8 @@ bool BootManager::checkForForceAPMode() {
     uint32_t last_boot_time_s = boot_prefs.getUInt("last_boot_s", 0);
     uint32_t current_boot_time_s = _clock.getRtc().now().unixtime();
     
-    ENC_LOG("Last boot time read: %u", last_boot_time_s);
-    ENC_LOG("Current RTC time:    %u", current_boot_time_s);
+    ENC_LOG("Last boot time read: %lu", last_boot_time_s);
+    ENC_LOG("Current RTC time:    %lu", current_boot_time_s);
     
     // Store the current boot time for the next check
     boot_prefs.putUInt("last_boot_s", current_boot_time_s);
@@ -35,7 +35,7 @@ bool BootManager::checkForForceAPMode() {
     // Check if the time between boots is within our window
     if (last_boot_time_s > 0) {
         uint32_t diff = current_boot_time_s - last_boot_time_s;
-        ENC_LOG("Time since last boot: %u seconds.", diff);
+        ENC_LOG("Time since last boot: %lu seconds.", diff);
         if (diff < _resetWindowSeconds) {
             ENC_LOG("Double reset detected!");
             return true; // Double reset detected
