@@ -2,7 +2,7 @@
 #define BASE_NTP_CLOCK_APP_H
 
 #include <memory>
-#include "i_generic_clock.h"
+#include "i_base_clock.h"
 #include "base_preferences.h"
 #include "base_access_point_manager.h"
 #include "clock_fsm_manager.h"
@@ -10,7 +10,7 @@
 #include "boot_manager.h"
 
 // This is the generic application "engine"
-class BaseNtpClockApp : public IGenericClock {
+class BaseNtpClockApp : public virtual IBaseClock {
 public:
     virtual void setup();
     virtual void loop();

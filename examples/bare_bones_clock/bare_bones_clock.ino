@@ -4,11 +4,13 @@
 
 // 1. DEFINE MINIMAL CONFIGURATION
 struct BareConfig : public BaseConfig {};
+
 class BarePreferences : public BasePreferences {
 public:
     BarePreferences() : BasePreferences(config) {}
     BareConfig config;
 };
+
 class BareAccessPointManager : public BaseAccessPointManager {
 public:
     BareAccessPointManager(BarePreferences& prefs) : BaseAccessPointManager(prefs) {}
@@ -20,13 +22,14 @@ static const DisplayScene scenePlaylist[] = {
     {"Time", "%H.%M.%S", SLOT_MACHINE, false, 10000, 200, 50, getTimeData},
     {"Date", "%b %d %Y", SCROLLING, true, 7000, 300, 0, getTimeData},
 };
+
 static const int numScenes = sizeof(scenePlaylist) / sizeof(DisplayScene);
 
 // 3. CREATE THE APPLICATION CLASS
 class BareBonesClockApp : public BaseNtpClockApp {
 public:
     BareBonesClockApp() :
-        _display(0x70, 8),
+        _display(HT16K33_I2C_DEF_ADR, HT16K33_DEF_DISP_SIZE),
         _displayManager(_display),
         _myPrefs(), // These are constructed first
         _myApManager(_myPrefs)
@@ -63,21 +66,17 @@ public:
     bool isRtcActive() const override { return _rtcActive; }
 
     // --- Implement other overrides needed by the library ---
-    const char* getAppName() const override { return "ESP32-Clock"; }
+    const char* getAppName() const override { return "ESP32 NTP Clock"; }
+
     const char* getSsid() const override { return _myPrefs.config.ssid; }
     const char* getPassword() const override { return _myPrefs.config.password; }
     const char* getTimezone() const override { return _myPrefs.config.time_zone; }
     void activateAccessPoint() override {
         _myApManager.setup(getAppName());
-        _myApManager.runBlockingLoop(getClock(), "SETUP MODE", "CONNECT...");
+        _myApManager.runBlockingLoop(getClock(), "AP SETUP MODE", "CONNECT...");
     }
     void syncRtcFromNtp() override { if (_rtcActive) _rtc.adjust(DateTime(time(nullptr))); }
-    const char* getTempUnit() const override { return ""; }
-    const char* getOwmApiKey() const override { return ""; }
-    const char* getOwmCity() const override { return ""; }
-    const char* getOwmStateCode() const override { return ""; }
-    const char* getOwmCountryCode() const override { return ""; }
-    void setWeatherData(const OpenWeatherData& data) override {}
+
     void formatTime(char* txt, unsigned int txt_size, const char* format, time_t now) override { strftime(txt, txt_size, format, localtime(&now)); }
     bool isOkToRunScenes() const override { return _fsmManager->isInState("RUNNING_NORMAL"); }
     IDisplayDriver& getDisplay() override { return _display; }
@@ -99,6 +98,7 @@ void setup() {
     Serial.begin(115200);
     app.setup();
 }
+
 void loop() {
     app.loop();
 }

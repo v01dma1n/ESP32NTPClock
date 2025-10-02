@@ -3,7 +3,7 @@
 
 #include "i_animation.h"
 #include "i_display_driver.h"
-#include "i_generic_clock.h"
+#include "i_base_clock.h"
 
 #include "i2c_util.h"
 

@@ -22,7 +22,7 @@ public:
     virtual void setup(const char* hostName);
     void loop();
     bool isClientConnected() const { return _isClientConnected; } 
-     void runBlockingLoop(DisplayManager& display, const char* waitingMsg, const char* connectedMsg);
+    void runBlockingLoop(DisplayManager& display, const char* waitingMsg, const char* connectedMsg);
 
 
 protected:
@@ -37,6 +37,7 @@ private:
     DNSServer _dnsServer;
     AsyncWebServer _server;
     bool _isClientConnected = false;
+    String _pageTitle;
 
     String generateForm();
     String generateJavascript();

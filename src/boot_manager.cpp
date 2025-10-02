@@ -1,11 +1,10 @@
 #include "boot_manager.h"
-#include "i_generic_clock.h"
 #include "enc_debug.h"
 
 #include <Preferences.h>
 #include "RTClib.h" // Needed for DateTime
 
-BootManager::BootManager(IGenericClock& clock) : _clock(clock) {}
+BootManager::BootManager(IBaseClock& clock) : _clock(clock) {}
 
 bool BootManager::checkForForceAPMode() {
     // This logic is moved from the application's setup() function.

@@ -2,7 +2,7 @@
 #define CLOCK_FSM_MANAGER_H
 
 #include "SimpleFSM.h"
-#include "i_generic_clock.h"
+#include "i_base_clock.h"
 
 // Forward declarations for the C-style callback wrappers
 void fsm_on_enter_startup_anim_wrapper();
@@ -23,7 +23,7 @@ bool fsm_guard_ap_timeout_with_rtc_wrapper();
 
 class ClockFsmManager {
 public:
-    ClockFsmManager(IGenericClock& clock);
+    ClockFsmManager(IBaseClock& clock);
     void setup();
     void update();
 
@@ -47,7 +47,7 @@ public:
     bool guard_anim_done();
 
 private:
-    IGenericClock& _clock;
+    IBaseClock& _clock;
     SimpleFSM _fsm;
 };
 

@@ -34,7 +34,7 @@ bool fsm_guard_ap_timeout_with_rtc_wrapper() { return _instance ? _instance->gua
 
 // --- Class Implementation ---
 
-ClockFsmManager::ClockFsmManager(IGenericClock& clock) : _clock(clock) {
+ClockFsmManager::ClockFsmManager(IBaseClock& clock) : _clock(clock) {
     _instance = this; // Set the static instance pointer
 }
 

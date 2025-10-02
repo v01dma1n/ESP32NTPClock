@@ -31,6 +31,7 @@ BaseAccessPointManager::BaseAccessPointManager(BasePreferences& prefs)
 // The destructor is defaulted in the header, so the empty body is removed from here.
 
 void BaseAccessPointManager::setup(const char* hostName) {
+    _pageTitle = String(hostName) + " Settings";
     initializeFormFields();
     setupServer();
 
@@ -158,7 +159,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Bubble LED Display Settings</title>
+    <title>%PAGE_TITLE%</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Old+Standard+TT&display=swap"> 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond&display=swap">
     %JAVASCRIPT_PLACEHOLDER%
@@ -183,7 +184,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     </style>
 </head>
 <body>
-    <h1>Bubble LED Clock Settings</h1>
+    <h1>%PAGE_TITLE%</h1>
     %FORM_PLACEHOLDER%
 </body>
 </html>)rawliteral";
@@ -256,6 +257,8 @@ String BaseAccessPointManager::generateJavascript() {
 
 String BaseAccessPointManager::assembleHtml() {
     String html = String(index_html);
+
+    html.replace("%PAGE_TITLE%", _pageTitle); 
 
     // Replace Javascript Placeholder
     String generatedJavascript = generateJavascript();
