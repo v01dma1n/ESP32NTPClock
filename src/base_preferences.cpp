@@ -1,7 +1,6 @@
 #include "base_preferences.h"
 #include "enc_debug.h"
 
-#define PREF_NAMESPACE "config"
 #define APP_PREF_WIFI_SSID "wifi_ssid"
 #define APP_PREF_PASSWORD "password"
 #define APP_PREF_TIME_ZONE "time_zone"
