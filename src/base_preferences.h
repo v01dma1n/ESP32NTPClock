@@ -4,6 +4,8 @@
 #include "enc_types.h"
 #include <Preferences.h>
 
+#define PREF_NAMESPACE "config"
+
 #define MAX_PREF_STRING_LEN 64
 
 // The base configuration struct with only generic fields
