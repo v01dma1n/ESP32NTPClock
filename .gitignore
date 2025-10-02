@@ -3,4 +3,4 @@
 stashed/
 *.src
 *.*~
-
+*.code-workspace
