@@ -1,12 +1,12 @@
 #include "base_ntp_clock_app.h"
 #include <Wire.h>
 
-BaseNtpClockApp::BaseNtpClockApp(BasePreferences& prefs, BaseAccessPointManager& apManager)
-    : _prefs(prefs), _apManager(apManager) {}
+BaseNtpClockApp::BaseNtpClockApp():
+    _prefs(nullptr), _apManager(nullptr) {}
 
 void BaseNtpClockApp::setup() {
     Wire.begin();
-    _prefs.setup();
+    if (_prefs) _prefs->setup();
 
     _bootManager = std::make_unique<BootManager>(*this);
     if (_bootManager->checkForForceAPMode()) {
@@ -16,7 +16,7 @@ void BaseNtpClockApp::setup() {
 
     _fsmManager = std::make_unique<ClockFsmManager>(*this);
     _sceneManager = std::make_unique<SceneManager>(*this);
-    _fsmManager->setup();
+    if (_fsmManager) _fsmManager->setup();
 }
 
 void BaseNtpClockApp::loop() {

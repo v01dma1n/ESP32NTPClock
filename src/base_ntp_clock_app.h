@@ -22,11 +22,11 @@ public:
 
 protected:
     // The constructor is protected to ensure this class is only used as a base
-    BaseNtpClockApp(BasePreferences& prefs, BaseAccessPointManager& apManager);
+    BaseNtpClockApp();
 
     // Generic managers owned by the base class
-    BasePreferences& _prefs;
-    BaseAccessPointManager& _apManager;
+    BasePreferences* _prefs;
+    BaseAccessPointManager* _apManager;
     std::unique_ptr<ClockFsmManager> _fsmManager;
     std::unique_ptr<SceneManager> _sceneManager;
     std::unique_ptr<BootManager> _bootManager;
