@@ -1,6 +1,9 @@
 #include "clock_fsm_manager.h"
+#include "display_manager.h"
 #include "sntp_client.h"
 #include "anim_scrolling_text.h"
+#include "anim_static_text.h"
+
 #include <WiFi.h>
 
 // This static instance pointer is the bridge between the C-style FSM callbacks
@@ -76,19 +79,22 @@ bool ClockFsmManager::isInState(const String& stateName) const {
 // --- FSM Callback Implementations (generic) ---
 
 void ClockFsmManager::on_enter_startup_anim() {
+    Serial.println("ClockFsmManager::on_enter_startup_anim()");
     // This can be overridden by the specific clock implementation for a custom message
     auto startupMsg = std::make_unique<ScrollingTextAnimation>("LOADING...");
     _clock.getClock().setAnimation(std::move(startupMsg));
 }
 
 void ClockFsmManager::on_enter_wifi_connect() {
+    Serial.println("ClockFsmManager::on_enter_wifi_connect()");
     WiFi.setHostname(_clock.getAppName());
     WiFi.begin(_clock.getSsid(), _clock.getPassword());
-    auto connectingMsg = std::make_unique<ScrollingTextAnimation>("CONNECTING WIFI...");
+    auto connectingMsg = std::make_unique<ScrollingTextAnimation>("CONNECTING TO WIFI...");
     _clock.getClock().setAnimation(std::move(connectingMsg));
 }
 
 void ClockFsmManager::on_enter_ntp_sync() {
+    Serial.println("ClockFsmManager::on_enter_ntp_sync()");
     // Use the new interface method
     setupSntp(_clock.getTimezone());
     auto syncingMsg = std::make_unique<ScrollingTextAnimation>("SYNCING TIME...");
@@ -96,6 +102,7 @@ void ClockFsmManager::on_enter_ntp_sync() {
 }
 
 void ClockFsmManager::on_exit_ntp_sync() {
+    Serial.println("ClockFsmManager::on_exit_ntp_sync()");
     _clock.getClock().setAnimation(nullptr);
 }
 
@@ -109,6 +116,7 @@ void ClockFsmManager::on_exit_ap_mode() {
 }
 
 void ClockFsmManager::on_enter_running_normal() {
+    Serial.println("ClockFsmManager::on_enter_running_normal()");
     // This state is entered after a successful NTP sync (among other paths).
     // If timeAvail is true, it means we just got NTP time, so this is the
     // safe place to sync the RTC.

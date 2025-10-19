@@ -7,6 +7,8 @@
 
 #include <ESP32NTPClock.h>
 
+#define MAX_SCENE_TEXT_LEN 64
+
 class SceneManager {
 public:
     SceneManager(IBaseClock& clock);
@@ -21,7 +23,8 @@ private:
     int _numScenes;
     int _currentSceneIndex;
     unsigned long _sceneStartTime;
-
+    unsigned long _lastLiveUpdateTime;
+    bool _wasAnimationRunning;
 };
 
 #endif // SCENE_MANAGER_H

@@ -24,6 +24,8 @@ protected:
     // The constructor is protected to ensure this class is only used as a base
     BaseNtpClockApp();
 
+    virtual void setupHardware() = 0;
+        
     // Generic managers owned by the base class
     BasePreferences* _prefs;
     BaseAccessPointManager* _apManager;

@@ -10,7 +10,6 @@ class MatrixAnimation : public IAnimation {
 public:
     MatrixAnimation(std::string targetText,
                     unsigned long revealDelay = 200,
-                    unsigned long holdTime = 2000,
                     unsigned long rainDelay = 50,
                     bool dotsWithPreviousChar = false);
     
@@ -26,17 +25,15 @@ private:
     
     // Parsed text and dot states
     std::string _parsedTargetText;
-    std::vector<bool> _dotState;
+    std::vector<uint8_t> _dotState;
 
     // Timing controls
     unsigned long _revealDelay;
-    unsigned long _holdTime;
     unsigned long _rainDelay;
 
     // State variables
     unsigned long _lastRainTime;
     unsigned long _lastRevealTime;
-    unsigned long _revealCompleteTime;
     int _revealedCount;
     
     std::vector<std::vector<float>> _rainPos;

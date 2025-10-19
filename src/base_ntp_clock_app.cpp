@@ -1,11 +1,12 @@
 #include "base_ntp_clock_app.h"
+#include "enc_debug.h"
 #include <Wire.h>
 
 BaseNtpClockApp::BaseNtpClockApp():
     _prefs(nullptr), _apManager(nullptr) {}
 
 void BaseNtpClockApp::setup() {
-    Wire.begin();
+    setupHardware(); 
     if (_prefs) _prefs->setup();
 
     _bootManager = std::make_unique<BootManager>(*this);
