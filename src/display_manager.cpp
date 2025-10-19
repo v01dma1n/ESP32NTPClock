@@ -1,9 +1,12 @@
 #include "display_manager.h"
 #include "enc_debug.h"
-#include "Arduino.h" // Needed for FreeRTOS types
+#include "Arduino.h"
 
-// NEW: Get the queue handle from the main .ino file
-extern QueueHandle_t displayTriggerQueue;
+// We assume a max display size for the frame.
+#define DISPLAY_DIGITS 10
+typedef unsigned long DisplayFrame[DISPLAY_DIGITS];
+
+extern QueueHandle_t frameQueue;
 
 DisplayManager::DisplayManager(IDisplayDriver& display) : _display(display) {}
 
@@ -30,16 +33,14 @@ void DisplayManager::update() {
     bool needsUpdate = _display.needsContinuousUpdate();
     
     if (needsUpdate) {
-        // OLD logic:
-        // _display.writeDisplay();
+        // The animation has updated the driver's internal buffer.
+        // Now, get a copy of that buffer and send it to the queue.
+        DisplayFrame frame;
+        _display.getFrameData(frame);
         
-        // NEW logic:
-        // Send a non-blocking trigger to the high-priority displayTask.
-        // If the queue is full (which it will be if the displayTask
-        // is still busy), this message is simply dropped. This is
-        // the correct behavior for a high-frequency trigger.
-        int dummy = 1;
-        xQueueSend(displayTriggerQueue, &dummy, 0); 
+        // Overwrite the queue with the latest frame.
+        // The displayTask will pick this up on its next loop.
+        xQueueOverwrite(frameQueue, &frame);
     }
 }
 

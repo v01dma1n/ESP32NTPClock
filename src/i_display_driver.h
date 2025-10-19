@@ -20,7 +20,10 @@ public:
 
     void print(const char* text, bool dotsWithPreviousChar = false); 
     virtual void writeDisplay() = 0;
+    
+    virtual void writeNextDigit() { /* Do nothing by default */ }
     virtual bool needsContinuousUpdate() const { return false; }
+    virtual void getFrameData(unsigned long* buffer) = 0;
 };
 
 #endif // I_DISP_DRIVER_H
