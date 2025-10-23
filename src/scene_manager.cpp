@@ -21,6 +21,10 @@ void SceneManager::setup(const DisplayScene* playlist, int numScenes) {
 
 void SceneManager::update() {
 
+    if (_numScenes == 0 || _scenePlaylist == nullptr) {
+        return;
+    }
+
     // This logic only runs if the app says it's okay (e.g., FSM is in the right state)
     if (_app.isOkToRunScenes() == false) {
         return;

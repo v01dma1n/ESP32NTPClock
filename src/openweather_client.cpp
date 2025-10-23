@@ -55,7 +55,6 @@ OpenWeatherData getOpenWeatherData(const OWMConfig& config) {
                 ENC_LOG("Failed to parse weather JSON: %s", payload.c_str());
             }
         } else {
-            // The new error log also includes the payload, which is more helpful for debugging.
             ENC_LOG("HTTP GET request failed, code: %d, response: %s", httpCode, payload.c_str());
         }
         http.end();
