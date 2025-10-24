@@ -2,12 +2,6 @@
 #include "enc_debug.h"
 #include "Arduino.h"
 
-// We assume a max display size for the frame.
-#define DISPLAY_DIGITS 10
-typedef unsigned long DisplayFrame[DISPLAY_DIGITS];
-
-extern QueueHandle_t frameQueue;
-
 DisplayManager::DisplayManager(IDisplayDriver& display) : _display(display) {}
 
 void DisplayManager::begin() {
@@ -28,19 +22,6 @@ void DisplayManager::update() {
         if (_currentAnimation->isDone()) {
             _currentAnimation.reset();
         }
-    }
-
-    bool needsUpdate = _display.needsContinuousUpdate();
-    
-    if (needsUpdate) {
-        // The animation has updated the driver's internal buffer.
-        // Now, get a copy of that buffer and send it to the queue.
-        DisplayFrame frame;
-        _display.getFrameData(frame);
-        
-        // Overwrite the queue with the latest frame.
-        // The displayTask will pick this up on its next loop.
-        xQueueOverwrite(frameQueue, &frame);
     }
 }
 
