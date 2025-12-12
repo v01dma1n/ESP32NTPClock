@@ -15,6 +15,12 @@ public:
     virtual void setChar(int position, char character, bool dot = false) = 0;
     virtual void setSegments(int position, uint16_t mask) = 0;
     
+    /* @brief Manually sets or clears the dot segment for a specific position.
+     * * @param position The digit position (0-indexed).
+     * @param on true to turn the dot on, false to turn it off.
+     */
+    virtual void setDot(int position, bool on) = 0;
+    
     virtual unsigned long mapAsciiToSegment(char ascii_char, bool dot) = 0;
     virtual void setBuffer(const std::vector<unsigned long>& newBuffer) = 0;
 
